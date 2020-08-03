@@ -35,12 +35,22 @@ var (
 
 // 初始化
 func init() {
+	// 环境变量读取
+	if tmp := os.Getenv("xmlFilePath"); tmp != "" {
+		xmlFilePath = tmp
+	}
+	if tmp := os.Getenv("csvPath"); tmp != "" {
+		csvPath = tmp
+	}
+	
 	// 日志初始化
 	LogInit()
+	// 创建csv文件路径
 	if _, err := os.Stat(csvPath); err != nil {
 		os.Mkdir(csvPath, 0777)
 		os.Chmod(csvPath, 0777)
 	}
+	// 读取交易日历
 	readCalendar()
 }
 

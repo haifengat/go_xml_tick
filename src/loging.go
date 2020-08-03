@@ -9,7 +9,7 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
-// 初始化:日志
+// LogInit 日志初始化
 func LogInit() {
 	logger.SetLevel(logger.InfoLevel)
 	logger.AddHook(newRotateHook("", "stdout.logger", 7*24*time.Hour, 24*time.Hour))
