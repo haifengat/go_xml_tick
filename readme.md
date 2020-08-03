@@ -7,9 +7,14 @@ golang 实现读取xml文件,并转换为csv文件.
 * csvPath
     * 保存tick数据的csv文件路径
 
+## 文件格式
+gzip压缩
+float采用.4f格式
+标题:TradingDay,InstrumentID,UpdateTime,UpdateMillisec,ActionDay,LowerLimitPrice,UpperLimitPrice,BidPrice1,AskPrice1,AskVolume1,BidVolume1,LastPrice,Volume,OpenInterest,Turnover,AveragePrice
+
 ## Dockerfile
 go build -o bin/xml_tick main.go
-```yml
+```dockerfile
 FROM haifengat/ctp_real_md
 
 COPY bin/xml_tick /home
