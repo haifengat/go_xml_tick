@@ -42,7 +42,7 @@ func init() {
 	if tmp := os.Getenv("csvPath"); tmp != "" {
 		csvPath = tmp
 	}
-	
+
 	// 日志初始化
 	LogInit()
 	// 创建csv文件路径
@@ -203,7 +203,14 @@ func lineToTick(decoder *xml.Decoder, tradingDay string) {
 		actionDay = tradingDay
 		actionNextDay = tradingDay
 	} else {
-		actionDay = tradingDays[len(tradingDays)-2]
+		idx := -1
+		for i := 0; i < len(tradingDays); i++ {
+			if tradingDays[i] == tradingDay {
+				idx = i
+				break
+			}
+		}
+		actionDay = tradingDays[idx-1]
 		t, _ := time.Parse(yyyyMMdd, actionDay)
 		actionNextDay = t.AddDate(0, 0, 1).Format(yyyyMMdd)
 	}
