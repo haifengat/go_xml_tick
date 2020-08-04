@@ -30,7 +30,7 @@ var (
 	// 读取xml tar.gz file path
 	xmlFilePath = "/mnt/future_xml"
 	// 保存csv文件夹
-	csvPath = "./csv_gz"
+	csvPath = "/mnt/future_tick_csv_gz"
 )
 
 // 初始化
