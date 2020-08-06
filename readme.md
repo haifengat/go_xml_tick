@@ -46,6 +46,5 @@ services:
       - csvPath=/home/csv_path
     volumes: 
       - /mnt/future_xml:/home/xml_path
-      - /mnt/future_csv_gz:/home/csv_path
-
+      - /mnt/future_tick_csv_gz:/home/csv_path
 ```
