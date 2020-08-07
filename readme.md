@@ -35,19 +35,30 @@ docker build -t haifengat/go_xml_tick .
 docker pull haifengat/go_xml_tick && docker tag haifengat/go_xml_tick haifengat/go_xml_tick:`date +%Y%m%d` && docker push haifengat/go_xml_tick:`date +%Y%m%d`
 ```
 
+### 启动
+```bash
+docker-compose --compatibility up -d
+```
+
 ## docker-compose.yml
 ```yml
 version: "3"
 services:
-  go_xml_tick:
+go_xml_tick:
     image: haifengat/go_xml_tick
     container_name: go_xml_tick
     restart: always
     environment:
-      - TZ=Asia/Shanghai
-      - xmlFilePath=/home/xml_path
-      - csvPath=/home/csv_path
+        - TZ=Asia/Shanghai
+        - xmlFilePath=/home/xml_path
+        - csvPath=/home/csv_path
     volumes: 
-      - /mnt/future_xml:/home/xml_path
-      - /mnt/future_tick_csv_gz:/home/csv_path
+        - /mnt/future_xml:/home/xml_path
+        - /mnt/future_tick_csv_gz:/home/csv_path
+    deploy:
+        resources:
+            limits:
+                memory: 6G
+            reservations:
+                memory: 200M
 ```
