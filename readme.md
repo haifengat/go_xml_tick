@@ -6,6 +6,9 @@ golang 实现读取xml文件,并转换为csv文件.
     * xml.tar.gz文件路径
 * csvPath
     * 保存tick数据的csv文件路径
+* xml
+    * 文件所在的sftp配置,不配置则不读取
+    * 格式: ip/port/user/password
 
 ## 格式
 * 文件

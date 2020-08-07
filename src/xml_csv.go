@@ -96,6 +96,15 @@ func Run(startDay string) {
 		if len(days) > 0 {
 			startDay = sort.StringSlice(days)[len(days)-1]
 		}
+	} else { // 取指定日期前一交易日,以便程序执行时包括指定的日期
+		startIdx := 0
+		for i := 0; i < len(tradingDays); i++ {
+			if tradingDays[i] == startDay {
+				startIdx = i - 1
+				break
+			}
+		}
+		startDay = tradingDays[startIdx]
 	}
 	// xml文件列表
 	xmlFiles := []string{}
@@ -103,7 +112,7 @@ func Run(startDay string) {
 	for _, f := range files {
 		if !f.IsDir() {
 			name := strings.Split(f.Name(), ".")[0]
-			if name >= startDay { // >=程序启动时会重新处理最后一天的数据
+			if name > startDay { // >=程序启动时会重新处理最后一天的数据
 				xmlFiles = append(xmlFiles, name)
 			}
 		}
@@ -140,7 +149,10 @@ func Run(startDay string) {
 	close(chDay)
 
 	// 取下一交易日
-	latestDay := xmlFiles[len(xmlFiles)-1]
+	latestDay := startDay
+	if len(xmlFiles) > 0 {
+		latestDay = xmlFiles[len(xmlFiles)-1]
+	}
 	latestIdx := 0
 	for i := 0; i < len(tradingDays); i++ {
 		if tradingDays[i] > latestDay {
@@ -151,14 +163,52 @@ func Run(startDay string) {
 	latestDay = tradingDays[latestIdx]
 	for {
 		_, err := os.Stat(path.Join(xmlFilePath, latestDay+".tar.gz"))
+		// 文件存在
 		if err == nil {
 			logger.Info(latestDay, " start...")
 			XMLToTickData(latestDay)
 			latestIdx++
 			latestDay = tradingDays[latestIdx]
 			logger.Info(latestDay, " waiting...")
+		} else { // 从sftp读取
+			// export xmlSftp=192.168.111.191/22/root/123456
+			if tmp := os.Getenv("xmlSftp"); tmp != "" {
+				ss := strings.Split(tmp, "/")
+				host, user, pwd := ss[0], ss[2], ss[3]
+				port, _ := strconv.Atoi(ss[1])
+				//sftp, err := NewHfSftp("192.168.111.191", 22, "root", "123456")
+				sftp, err := NewHfSftp(host, port, user, pwd)
+				defer sftp.Close()
+				checkErr(err)
+				srcFile, err := sftp.GetFile("/home/haifeng/data/" + latestDay + ".tar.gz")
+				defer srcFile.Close()
+				if err == nil {
+					logger.Info(latestDay, " reading...")
+					dstFile, err := os.OpenFile(path.Join(xmlFilePath, latestDay+".tar.gz"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.ModePerm)
+					defer dstFile.Close()
+					checkErr(err)
+					buf := make([]byte, 1024*1024*100)
+					for {
+						n, _ := srcFile.Read(buf)
+						if n == 0 {
+							logger.Info(latestDay, " write finish.")
+							logger.Info(latestDay, " to csv start...")
+							XMLToTickData(latestDay)
+							latestIdx++
+							latestDay = tradingDays[latestIdx]
+							logger.Info(latestDay, " waiting...")
+							break
+						}
+						dstFile.Write(buf[0:n])
+					}
+				} else { // 文件不存在
+					// logger.Error(err)
+					time.Sleep(time.Minute * 10)
+				}
+			} else { // 未配置 Sftp
+				time.Sleep(time.Minute * 10)
+			}
 		}
-		time.Sleep(time.Minute * 10)
 	}
 }
 
@@ -216,7 +266,7 @@ func lineToTick(decoder *xml.Decoder, tradingDay string) {
 	}
 
 	var cnt = 0
-	gz, err := os.OpenFile(path.Join(csvPath, tradingDay+".csv.gz"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.ModePerm) // os.O_TRUNC覆盖
+	gz, err := os.OpenFile(path.Join(csvPath, tradingDay+".gz"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.ModePerm) // os.O_TRUNC覆盖
 	checkErr(err)
 	defer gz.Close()
 	csvGz := gzip.NewWriter(gz)
@@ -265,5 +315,7 @@ func lineToTick(decoder *xml.Decoder, tradingDay string) {
 			}
 		}
 	}
+	// 完成后改名,避免下一步操作读到未完成的数据
+	os.Rename(path.Join(csvPath, tradingDay+".gz"), path.Join(csvPath, tradingDay+"csv.gz"))
 	logger.Info(tradingDay, ":", cnt)
 }
