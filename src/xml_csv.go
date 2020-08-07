@@ -316,6 +316,6 @@ func lineToTick(decoder *xml.Decoder, tradingDay string) {
 		}
 	}
 	// 完成后改名,避免下一步操作读到未完成的数据
-	os.Rename(path.Join(csvPath, tradingDay+".gz"), path.Join(csvPath, tradingDay+"csv.gz"))
+	os.Rename(path.Join(csvPath, tradingDay+".gz"), path.Join(csvPath, tradingDay+".csv.gz"))
 	logger.Info(tradingDay, ":", cnt)
 }
