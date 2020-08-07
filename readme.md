@@ -42,23 +42,25 @@ docker-compose --compatibility up -d
 
 ## docker-compose.yml
 ```yml
-version: "3"
+version: "3.7"
 services:
-go_xml_tick:
-    image: haifengat/go_xml_tick
-    container_name: go_xml_tick
-    restart: always
-    environment:
-        - TZ=Asia/Shanghai
-        - xmlFilePath=/home/xml_path
-        - csvPath=/home/csv_path
-    volumes: 
-        - /mnt/future_xml:/home/xml_path
-        - /mnt/future_tick_csv_gz:/home/csv_path
-    deploy:
-        resources:
-            limits:
-                memory: 6G
-            reservations:
-                memory: 200M
+    go_xml_tick:
+        image: haifengat/go_xml_tick
+        container_name: go_xml_tick
+        restart: always
+        environment:
+            - TZ=Asia/Shanghai
+            - xmlFilePath=/home/xml_path
+            - csvPath=/home/csv_path
+            # xml文件所在的sftp配置,不配置则不读取
+            - xmlSftp=192.168.111.191/22/root/123456
+        volumes: 
+            - /mnt/future_xml:/home/xml_path
+            - /mnt/future_tick_csv_gz:/home/csv_path
+        deploy:
+            resources:
+                limits:
+                    memory: 6G
+                reservations:
+                    memory: 200M
 ```
