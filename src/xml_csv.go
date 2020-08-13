@@ -164,6 +164,7 @@ func Run(startDay string) {
 		}
 	}
 	latestDay = tradingDays[latestIdx]
+	logger.Info(latestDay, " waiting...")
 	for {
 		_, err := os.Stat(path.Join(xmlFilePath, latestDay+".tar.gz"))
 		// 文件存在
