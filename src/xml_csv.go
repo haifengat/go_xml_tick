@@ -94,7 +94,9 @@ func Run(startDay string) {
 		}
 		// 排序取最大完成日期
 		if len(days) > 0 {
-			startDay = sort.StringSlice(days)[len(days)-1]
+			ss := sort.StringSlice(days)
+			sort.Sort(ss)
+			startDay = ss[len(ss)-1]
 		}
 	} else { // 取指定日期前一交易日,以便程序执行时包括指定的日期
 		startIdx := 0
@@ -107,7 +109,7 @@ func Run(startDay string) {
 		startDay = tradingDays[startIdx]
 	}
 	// xml文件列表
-	xmlFiles := []string{}
+	xmlFiles := sort.StringSlice{}
 	files, _ := ioutil.ReadDir(xmlFilePath)
 	for _, f := range files {
 		if !f.IsDir() {
@@ -117,7 +119,8 @@ func Run(startDay string) {
 			}
 		}
 	}
-	xmlFiles = sort.StringSlice(xmlFiles)
+	// xmlFiles = sort.StringSlice(xmlFiles)
+	sort.Sort(xmlFiles)
 	// for _, tradingDay := range xmlFiles {
 	// 	logger.Info(tradingDay, " start...")
 	// 	err := XMLToTickData(tradingDay)
