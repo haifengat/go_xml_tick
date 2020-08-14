@@ -26,7 +26,7 @@ var (
 	// 日期转换参数
 	yyyyMMdd = "20060102"
 	// 交易日历
-	tradingDays = []string{}
+	tradingDays = sort.StringSlice{}
 	// 读取xml tar.gz file path
 	xmlFilePath = "/mnt/future_xml"
 	// 保存csv文件夹
@@ -77,6 +77,7 @@ func readCalendar() {
 			tradingDays = append(tradingDays, line[0])
 		}
 	}
+	sort.Sort(tradingDays)
 }
 
 // Run 运行
