@@ -185,7 +185,7 @@ func Run(startDay string) {
 				sftp, err := NewHfSftp(host, port, user, pwd)
 				defer sftp.Close()
 				checkErr(err)
-				srcFile, err := sftp.GetFile("/home/haifeng/data/" + latestDay + ".tar.gz")
+				srcFile, err := sftp.GetFile(path.Join(os.Getenv("xmlSftpPath"), latestDay+".tar.gz"))
 				defer srcFile.Close()
 				if err == nil {
 					logger.Info(latestDay, " reading...")
