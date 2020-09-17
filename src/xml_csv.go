@@ -62,7 +62,7 @@ func checkErr(err error) {
 
 func readCalendar() {
 	// 取交易日历
-	cal, err := os.Open("/home/calendar.csv")
+	cal, err := os.Open("calendar.csv")
 	defer cal.Close()
 	if err != nil {
 		logger.Error(err)
