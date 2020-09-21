@@ -6,7 +6,7 @@ import (
 	"path"
 
 	"github.com/pkg/sftp"
-	log "github.com/sirupsen/logrus"
+	// log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 )
 
