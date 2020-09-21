@@ -1,6 +1,6 @@
 FROM golang:1.14-alpine3.11 AS builder
 
-ENV GOPROXY https://goproxy.cn
+ENV GOPROXY https://goproxy.io
 
 WORKDIR /build
 COPY go.mod .
