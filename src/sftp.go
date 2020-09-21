@@ -35,7 +35,7 @@ func NewHfSftp(host string, port int, user string, pwd string) (*HfSftp, error) 
 		err error
 	)
 	if e.sshClient, err = ssh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), sshConfig); err == nil {
-		log.Info("Successfully connected to ssh server.")
+		// log.Info("Successfully connected to ssh server.")
 		// open an SFTP session over an existing ssh connection.
 		e.client, err = sftp.NewClient(e.sshClient)
 	}

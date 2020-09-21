@@ -19,13 +19,32 @@ golang 实现读取xml文件,并转换为csv文件.
 > TradingDay,InstrumentID,UpdateTime,UpdateMillisec,ActionDay,LowerLimitPrice,UpperLimitPrice,BidPrice1,AskPrice1,AskVolume1,BidVolume1,LastPrice,Volume,OpenInterest,Turnover,AveragePrice
 
 ## Dockerfile
-go build -o bin/xml_tick main.go
 ```dockerfile
-FROM haifengat/ctp_real_md
+FROM golang:1.14-alpine3.11 AS builder
 
-COPY bin/xml_tick /home
-RUN chmod a+x /home/xml_tick
-ENTRYPOINT ["/home/xml_tick"]
+ENV GOPROXY https://goproxy.cn
+
+WORKDIR /build
+COPY go.mod .
+COPY go.sum .
+
+# 新增用户
+RUN adduser -u 10001 -D app-runner
+# 编译
+COPY . .
+COPY ./src ./src
+RUN go mod download; \
+    CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -a -o run .;
+
+FROM alpine:3.11 AS final
+
+WORKDIR /app
+COPY --from=builder /build/run /app/
+# 国内不稳定
+RUN wget https://raw.githubusercontent.com/haifengat/ctp_real_md/master/calendar.csv;
+
+#USER app-runner
+ENTRYPOINT ["./run"]
 ```
 
 ## build
@@ -43,6 +62,7 @@ docker-compose --compatibility up -d
 ## docker-compose.yml
 ```yml
 version: "3.7"
+# docker-compose --compatibility up -d
 services:
     go_xml_tick:
         image: haifengat/go_xml_tick
