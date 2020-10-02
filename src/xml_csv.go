@@ -26,7 +26,7 @@ var (
 	// 日期转换参数
 	yyyyMMdd = "20060102"
 	// 交易日历
-	tradingDays = sort.StringSlice{}
+	tradingDays = []string{}
 	// 读取xml tar.gz file path
 	xmlFilePath = "/mnt/future_xml"
 	// 保存csv文件夹
@@ -77,7 +77,7 @@ func readCalendar() {
 			tradingDays = append(tradingDays, line[0])
 		}
 	}
-	sort.Sort(tradingDays)
+	sort.Strings(tradingDays)
 }
 
 // Run 运行
@@ -99,15 +99,10 @@ func Run(startDay string) {
 			sort.Sort(ss)
 			startDay = ss[len(ss)-1]
 		}
-	} else { // 取指定日期前一交易日,以便程序执行时包括指定的日期
-		startIdx := 0
-		for i := 0; i < len(tradingDays); i++ {
-			if tradingDays[i] == startDay {
-				startIdx = i - 1
-				break
-			}
-		}
-		startDay = tradingDays[startIdx]
+	} else {
+		// 取日期前一自然日, 因:取交易日列表的逻辑中为 >
+		tmp, _ := time.Parse("20060102", startDay)
+		startDay = tmp.AddDate(0, 0, -1).Format("20060102")
 	}
 	// xml文件列表
 	xmlFiles := sort.StringSlice{}
@@ -265,6 +260,10 @@ func lineToTick(decoder *xml.Decoder, tradingDay string) {
 				break
 			}
 		}
+		if idx == -1 {
+			logger.Error(tradingDay, " is not in trading calendaer.")
+			panic(tradingDay + " is not in trading calendaer.")
+		}
 		actionDay = tradingDays[idx-1]
 		t, _ := time.Parse(yyyyMMdd, actionDay)
 		actionNextDay = t.AddDate(0, 0, 1).Format(yyyyMMdd)
@@ -293,7 +292,7 @@ func lineToTick(decoder *xml.Decoder, tradingDay string) {
 			if se.Name.Local == "NtfDepthMarketDataPackage" {
 				p := NtfDepthMarketDataPackage{}
 				if err = decoder.DecodeElement(&p, &se); err != nil {
-					logger.Error(se)
+					logger.Error(tradingDay, se)
 					fmt.Printf("%v", ee)
 					logger.Panic(err) // 遇到错误返回 报错:unexpect EOF
 				} else {

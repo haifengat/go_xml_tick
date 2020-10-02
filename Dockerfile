@@ -18,8 +18,8 @@ FROM alpine:3.11 AS final
 
 WORKDIR /app
 COPY --from=builder /build/run /app/
-# 国内不稳定
-RUN wget https://raw.githubusercontent.com/haifengat/ctp_real_md/master/calendar.csv;
+# 交易日历
+RUN wget http://data.haifengat.com/calendar.csv
 
 #USER app-runner
 ENTRYPOINT ["./run"]
