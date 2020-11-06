@@ -20,6 +20,11 @@ golang 实现读取xml文件,并转换为csv文件.
 * 标题
 > TradingDay,InstrumentID,UpdateTime,UpdateMillisec,ActionDay,LowerLimitPrice,UpperLimitPrice,BidPrice1,AskPrice1,AskVolume1,BidVolume1,LastPrice,Volume,OpenInterest,Turnover,AveragePrice
 
+## 编译运行
+`go build -o run`
+
+`xmlFilePath=/mnt/future_xml/ csvPath=/mnt/future_tick_csv_gz/ ./run`
+
 ## Dockerfile
 ```dockerfile
 FROM golang:1.14-alpine3.11 AS builder

@@ -275,7 +275,7 @@ func lineToTick(decoder *xml.Decoder, tradingDay string) {
 	}
 
 	var cnt = 0
-	gz, err := os.OpenFile(path.Join(csvPath, tradingDay+".gz"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.ModePerm) // os.O_TRUNC覆盖
+	gz, err := os.Create(path.Join(csvPath, tradingDay+".gz")) // os.OpenFile(path.Join(csvPath, tradingDay+".gz"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.ModePerm) // os.O_TRUNC覆盖
 	checkErr(err)
 	defer gz.Close()
 	csvGz := gzip.NewWriter(gz)
@@ -320,7 +320,11 @@ func lineToTick(decoder *xml.Decoder, tradingDay string) {
 					p.MarketDataBaseField.TradingDay = tradingDay
 					csvGz.Write([]byte(fmt.Sprintf("%s,%s,%s,%d,%s,%.4f,%.4f,%.4f,%.4f,%d,%d,%.4f,%d,%.4f,%.4f,%.4f\n", p.MarketDataBaseField.TradingDay, p.MarketDataUpdateTimeField.InstrumentID, p.MarketDataUpdateTimeField.UpdateTime, p.MarketDataUpdateTimeField.UpdateMillisec, p.MarketDataUpdateTimeField.ActionDay, p.MarketDataStaticField.LowerLimitPrice, p.MarketDataStaticField.UpperLimitPrice, p.MarketDataBestPriceField.BidPrice1, p.MarketDataBestPriceField.AskPrice1, p.MarketDataBestPriceField.AskVolume1, p.MarketDataBestPriceField.BidVolume1, p.MarketDataLastMatchField.LastPrice, p.MarketDataLastMatchField.Volume, p.MarketDataLastMatchField.OpenInterest, p.MarketDataLastMatchField.Turnover, p.MarketDataAveragePriceField.AveragePrice)))
 					cnt++
-					if cnt%500000 == 0 {
+					if cnt < 100000 {
+						if cnt%10000 == 0 {
+							logger.Infof("%s %d", tradingDay, cnt)
+						}
+					} else if cnt%100000 == 0 {
 						logger.Infof("%s %d", tradingDay, cnt)
 					}
 				}
