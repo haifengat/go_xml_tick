@@ -28,9 +28,9 @@ var (
 	// 交易日历
 	tradingDays = []string{}
 	// 读取xml tar.gz file path
-	xmlFilePath = "/mnt/future_xml"
+	xmlFilePath = "/xml"
 	// 保存csv文件夹
-	csvPath = "/mnt/future_tick_csv_gz"
+	csvPath = "/csv"
 )
 
 // 初始化
@@ -83,22 +83,27 @@ func readCalendar() {
 // Run 运行
 func Run(startDay string) {
 	if startDay == "" {
-		// csv 文件最大文件名
+		// csv 文件最大文件名; reddir返回已经排序的列表
 		files, _ := ioutil.ReadDir(csvPath)
-		days := []string{}
+		// days := []string{}
 		for _, f := range files {
 			if f.IsDir() {
 				continue
-			} else {
-				days = append(days, strings.Split(f.Name(), ".")[0])
+			} else { // 处理完的文件以csv.gz拓展，
+				if strings.HasSuffix(f.Name(), "csv.gz") {
+					// days = append(days, strings.Split(f.Name(), ".")[0])
+					startDay = strings.Split(f.Name(), ".")[0]
+				} else { // 有未处理完的数据,直接跳出
+					break
+				}
 			}
 		}
-		// 排序取最大完成日期
-		if len(days) > 0 {
-			ss := sort.StringSlice(days)
-			sort.Sort(ss)
-			startDay = ss[len(ss)-1]
-		}
+		// // 排序取最大完成日期
+		// if len(days) > 0 {
+		// 	ss := sort.StringSlice(days)
+		// 	sort.Sort(ss)
+		// 	startDay = ss[len(ss)-1]
+		// }
 	} else {
 		// 取日期前一自然日, 因:取交易日列表的逻辑中为 >
 		tmp, _ := time.Parse("20060102", startDay)
@@ -313,8 +318,11 @@ func lineToTick(decoder *xml.Decoder, tradingDay string) {
 						logger.Panic(err)
 					}
 					p.MarketDataBaseField.TradingDay = tradingDay
-					cnt++
 					csvGz.Write([]byte(fmt.Sprintf("%s,%s,%s,%d,%s,%.4f,%.4f,%.4f,%.4f,%d,%d,%.4f,%d,%.4f,%.4f,%.4f\n", p.MarketDataBaseField.TradingDay, p.MarketDataUpdateTimeField.InstrumentID, p.MarketDataUpdateTimeField.UpdateTime, p.MarketDataUpdateTimeField.UpdateMillisec, p.MarketDataUpdateTimeField.ActionDay, p.MarketDataStaticField.LowerLimitPrice, p.MarketDataStaticField.UpperLimitPrice, p.MarketDataBestPriceField.BidPrice1, p.MarketDataBestPriceField.AskPrice1, p.MarketDataBestPriceField.AskVolume1, p.MarketDataBestPriceField.BidVolume1, p.MarketDataLastMatchField.LastPrice, p.MarketDataLastMatchField.Volume, p.MarketDataLastMatchField.OpenInterest, p.MarketDataLastMatchField.Turnover, p.MarketDataAveragePriceField.AveragePrice)))
+					cnt++
+					if cnt%500000 == 0 {
+						logger.Infof("%s %d", tradingDay, cnt)
+					}
 				}
 			}
 		}

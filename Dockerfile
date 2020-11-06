@@ -19,7 +19,8 @@ FROM alpine:3.11 AS final
 WORKDIR /app
 COPY --from=builder /build/run /app/
 # 交易日历
-RUN wget http://data.haifengat.com/calendar.csv
+# RUN wget http://data.haifengat.com/calendar.csv
+COPY calendar.csv .
 
 #USER app-runner
 ENTRYPOINT ["./run"]

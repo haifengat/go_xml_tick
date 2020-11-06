@@ -16,6 +16,6 @@
 
 *.log
 csv_gz*/
-*.csv
 __debug*
 test
+run

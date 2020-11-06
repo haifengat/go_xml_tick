@@ -2,13 +2,15 @@
 golang 实现读取xml文件,并转换为csv文件.
 
 ## 环境变量
-* xmlFilePath
+* xmlFilePath = /xml
     * xml.tar.gz文件路径
-* csvPath
+* csvPath = /csv
     * 保存tick数据的csv文件路径
-* xml
+* xmlSftp
     * 文件所在的sftp配置,不配置则不读取
     * 格式: ip/port/user/password
+* xmlSftpPath
+    * sftp登录后取xml.tag.gz文件的路径
 
 ## 格式
 * 文件
@@ -70,14 +72,12 @@ services:
         restart: always
         environment:
             - TZ=Asia/Shanghai
-            - xmlFilePath=/home/xml_path
-            - csvPath=/home/csv_path
             # xml文件所在的sftp配置,不配置则不读取
-            - xmlSftp=192.168.111.191/22/root/123456
-            - xmlSftpPath=/home/haifeng/data/
+            # - xmlSftp=192.168.111.191/22/root/123456
+            # - xmlSftpPath=/home/haifeng/data/
         volumes: 
-            - /mnt/future_xml:/home/xml_path
-            - /mnt/future_tick_csv_gz:/home/csv_path
+            - /mnt/future_xml:/xml
+            - /mnt/future_tick_csv_gz:/csv
         deploy:
             resources:
                 limits:
