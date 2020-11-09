@@ -93,8 +93,6 @@ func Run(startDay string) {
 				if strings.HasSuffix(f.Name(), "csv.gz") {
 					// days = append(days, strings.Split(f.Name(), ".")[0])
 					startDay = strings.Split(f.Name(), ".")[0]
-				} else { // 有未处理完的数据,直接跳出
-					break
 				}
 			}
 		}
@@ -115,22 +113,11 @@ func Run(startDay string) {
 	for _, f := range files {
 		if !f.IsDir() {
 			name := strings.Split(f.Name(), ".")[0]
-			if name > startDay { // >=程序启动时会重新处理最后一天的数据
+			if name > startDay { // >=程序启动时 **不** 会重新处理最后一天的数据
 				xmlFiles = append(xmlFiles, name)
 			}
 		}
 	}
-	// xmlFiles = sort.StringSlice(xmlFiles)
-	sort.Sort(xmlFiles)
-	// for _, tradingDay := range xmlFiles {
-	// 	logger.Info(tradingDay, " start...")
-	// 	err := XMLToTickData(tradingDay)
-	// 	if err != nil {
-	// 		logger.Panic(tradingDay, " Error:", err)
-	// 	} else {
-	// 		logger.Info(tradingDay, " finished.")
-	// 	}
-	// }
 	// 使用chan 控制协程总数
 	var waitGroup sync.WaitGroup
 	chDay := make(chan string, runtime.NumCPU())
