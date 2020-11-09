@@ -16,6 +16,7 @@ RUN go mod download; \
 
 FROM alpine:3.11 AS final
 
+RUN apk add tzdata
 WORKDIR /app
 COPY --from=builder /build/run /app/
 # 交易日历
