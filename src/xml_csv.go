@@ -2,6 +2,7 @@ package src
 
 import (
 	"archive/tar"
+	"bytes"
 	"compress/gzip"
 	"encoding/csv"
 	"encoding/xml"
@@ -261,14 +262,16 @@ func lineToTick(decoder *xml.Decoder, tradingDay string) {
 		actionNextDay = t.AddDate(0, 0, 1).Format(yyyyMMdd)
 	}
 
-	var cnt = 0
-	gz, err := os.Create(path.Join(csvPath, tradingDay+".gz")) // os.OpenFile(path.Join(csvPath, tradingDay+".gz"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.ModePerm) // os.O_TRUNC覆盖
+	gz, err := os.Create(path.Join(csvPath, tradingDay+".gz"))
 	checkErr(err)
 	defer gz.Close()
 	csvGz := gzip.NewWriter(gz)
 	defer csvGz.Close()
 
-	csvGz.Write([]byte("TradingDay,InstrumentID,UpdateTime,UpdateMillisec,ActionDay,LowerLimitPrice,UpperLimitPrice,BidPrice1,AskPrice1,AskVolume1,BidVolume1,LastPrice,Volume,OpenInterest,Turnover,AveragePrice\n"))
+	var cnt = 0
+	csvBuffer := bytes.NewBufferString("TradingDay,InstrumentID,UpdateTime,UpdateMillisec,ActionDay,LowerLimitPrice,UpperLimitPrice,BidPrice1,AskPrice1,AskVolume1,BidVolume1,LastPrice,Volume,OpenInterest,Turnover,AveragePrice\n")
+	defer csvBuffer.Reset()
+
 	// 无法解决 expect EOF 的错误
 	for t, err := decoder.Token(); err == nil; t, err = decoder.Token() {
 		if t == nil {
@@ -305,19 +308,25 @@ func lineToTick(decoder *xml.Decoder, tradingDay string) {
 						logger.Panic(err)
 					}
 					p.MarketDataBaseField.TradingDay = tradingDay
-					csvGz.Write([]byte(fmt.Sprintf("%s,%s,%s,%d,%s,%.4f,%.4f,%.4f,%.4f,%d,%d,%.4f,%d,%.4f,%.4f,%.4f\n", p.MarketDataBaseField.TradingDay, p.MarketDataUpdateTimeField.InstrumentID, p.MarketDataUpdateTimeField.UpdateTime, p.MarketDataUpdateTimeField.UpdateMillisec, p.MarketDataUpdateTimeField.ActionDay, p.MarketDataStaticField.LowerLimitPrice, p.MarketDataStaticField.UpperLimitPrice, p.MarketDataBestPriceField.BidPrice1, p.MarketDataBestPriceField.AskPrice1, p.MarketDataBestPriceField.AskVolume1, p.MarketDataBestPriceField.BidVolume1, p.MarketDataLastMatchField.LastPrice, p.MarketDataLastMatchField.Volume, p.MarketDataLastMatchField.OpenInterest, p.MarketDataLastMatchField.Turnover, p.MarketDataAveragePriceField.AveragePrice)))
+					//csvGz.Write([]byte(fmt.Sprintf("%s,%s,%s,%d,%s,%.4f,%.4f,%.4f,%.4f,%d,%d,%.4f,%d,%.4f,%.4f,%.4f\n", p.MarketDataBaseField.TradingDay, p.MarketDataUpdateTimeField.InstrumentID, p.MarketDataUpdateTimeField.UpdateTime, p.MarketDataUpdateTimeField.UpdateMillisec, p.MarketDataUpdateTimeField.ActionDay, p.MarketDataStaticField.LowerLimitPrice, p.MarketDataStaticField.UpperLimitPrice, p.MarketDataBestPriceField.BidPrice1, p.MarketDataBestPriceField.AskPrice1, p.MarketDataBestPriceField.AskVolume1, p.MarketDataBestPriceField.BidVolume1, p.MarketDataLastMatchField.LastPrice, p.MarketDataLastMatchField.Volume, p.MarketDataLastMatchField.OpenInterest, p.MarketDataLastMatchField.Turnover, p.MarketDataAveragePriceField.AveragePrice)))
+					csvBuffer.WriteString(fmt.Sprintf("%s,%s,%s,%d,%s,%.4f,%.4f,%.4f,%.4f,%d,%d,%.4f,%d,%.4f,%.4f,%.4f\n", p.MarketDataBaseField.TradingDay, p.MarketDataUpdateTimeField.InstrumentID, p.MarketDataUpdateTimeField.UpdateTime, p.MarketDataUpdateTimeField.UpdateMillisec, p.MarketDataUpdateTimeField.ActionDay, p.MarketDataStaticField.LowerLimitPrice, p.MarketDataStaticField.UpperLimitPrice, p.MarketDataBestPriceField.BidPrice1, p.MarketDataBestPriceField.AskPrice1, p.MarketDataBestPriceField.AskVolume1, p.MarketDataBestPriceField.BidVolume1, p.MarketDataLastMatchField.LastPrice, p.MarketDataLastMatchField.Volume, p.MarketDataLastMatchField.OpenInterest, p.MarketDataLastMatchField.Turnover, p.MarketDataAveragePriceField.AveragePrice))
 					cnt++
 					if cnt < 100000 {
 						if cnt%10000 == 0 {
 							logger.Infof("%s %d", tradingDay, cnt)
 						}
 					} else if cnt%100000 == 0 {
+						csvBuffer.WriteTo(csvGz)
+						csvBuffer.Reset()
 						logger.Infof("%s %d", tradingDay, cnt)
 					}
 				}
 			}
 		}
 	}
+
+	csvBuffer.WriteTo(csvGz)
+
 	// 完成后改名,避免下一步操作读到未完成的数据
 	os.Rename(path.Join(csvPath, tradingDay+".gz"), path.Join(csvPath, tradingDay+".csv.gz"))
 	logger.Info(tradingDay, ":", cnt)
